@@ -1,0 +1,32 @@
+[project]
+name = "ettj"
+version = "0.1.0"
+description = "ETTJ - LangChain 1.5 agent workspace"
+requires-python = ">=3.11"
+dependencies = [
+    "langchain>=1.5,<2",
+    "langchain-core>=1.8",
+    "langgraph>=1.2",
+    "langgraph-checkpoint-sqlite>=2.0",
+    "sqlalchemy>=2.0",
+    "pymysql>=1.1",
+    "cryptography>=42",
+    "python-dotenv>=1.0",
+    "langsmith>=0.15",
+    "rich>=13",
+]
+
+[project.optional-dependencies]
+deepseek = ["langchain-deepseek>=1.2"]
+openai = ["langchain-openai>=1.8"]
+anthropic = ["langchain-anthropic>=1.7"]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
