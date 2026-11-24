@@ -161,3 +161,37 @@ python scripts/try_web.py            # 启动后自动打开 http://127.0.0.1:80
 - 表结构在进程内缓存，改了表要 `/refresh` 或重启。
 - 表名大小写：Linux 上 `lower_case_table_names=0` 时大小写敏感，12 张表名已写在提示词里，跨库查别的表要先拿原始写法。
 - 生产环境务必给只读账号限定来源 IP，公网再加 `REQUIRE SSL`。
+
+## 版本管理
+
+远端：`https://github.com/Jiang0820/ETTJ`，单分支 `main`，单人维护，直接在主线上提交。
+
+**提交信息前缀**（一眼看出动了哪层）：
+
+| 前缀 | 用途 |
+|---|---|
+| `prompt:` | 改提示词与口径 |
+| `feat:` | 新功能 / 新脚本 |
+| `fix:` | 修 bug |
+| `docs:` | README、docs 笔记 |
+| `chore:` | 依赖、配置、清理 |
+
+**常用命令**
+
+```powershell
+git add -A
+git commit -m "prompt: 补充 status 三值口径"
+git push
+
+git log --oneline -5                   # 看历史
+git remote -v                          # 确认远端
+git revert <hash>                      # 撤销某次提交（生成一条反向提交，最安全）
+git checkout <hash> -- <文件路径>       # 单独回滚某个文件
+```
+
+**约定**
+
+- `.env`、`data/*.sqlite`、`logs/`、`docs/会话记录/`、`ppt_preview/` 永不入库（见 `.gitignore`）
+- 可运行的节点打 tag，例如 `git tag v0.1.0 && git push --tags`
+- 当前推送代理配置在仓库本地（`http.proxy=127.0.0.1:10808`），不影响其他项目
+
