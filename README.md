@@ -41,7 +41,7 @@
 | PyMySQL | 1.2.4 |
 | python-dotenv | 1.2.4 |
 | 数据库 | MySQL 8.0.45，只读会话（库地址与账号不进仓库，只放本地 `.env`） |
-| 模型 | 火山方舟 `doubao-seed-2-1-lite-260915` |
+| 模型 | 火山方舟 `deepseek-v4-1-flash-economy-261017`（`THINKING=disabled`） |
 | 界面 | 标准库 `http.server`（无第三方 Web 框架） |
 
 从零复现：
@@ -85,7 +85,8 @@ python -m ettj.cli -v ask "..."      # 打印每一步工具调用
 ```ini
 VOLCENGINE_API_KEY='...'
 VOLCENGINE_BASE_URL='https://ark.cn-beijing.volces.com/api/v3'   # 只到 /api/v3，别带 /chat/completions
-MODEL=doubao-seed-2-1-lite-260915                                 # 真实 Model ID 带版本号，可在 /api/v3/models 查
+MODEL=deepseek-v4-1-flash-economy-261017                          # 真实 Model ID 带版本号，可在 /api/v3/models 查
+THINKING=disabled                                                 # enabled 开深度思考（贵），disabled 关
 ```
 
 ## 网页版对话窗口
@@ -115,6 +116,7 @@ python scripts/try_web.py            # 启动后自动打开 http://127.0.0.1:80
 | `SQL_MAX_ROWS` | `.env` | 50 | 单次查询最多返回几行，超出会明确提示"已截断" |
 | `SQL_MAX_CHARS` | `.env` | 6000 | 返回文本总长度上限，超了按字符硬截 |
 | `TRIGGER_TOKENS` | `ettj/middleware/trim.py` | 12000 | 超过就往回清旧工具返回 |
+| `THINKING` | `.env` | disabled | enabled 会开深度思考，输出 token 成倍增加 |
 
 明细类问题只拿 50 行时，聚合类问题（总数、家数、均价）不受影响——提示词要求这类问题走 `COUNT/GROUP BY`，所以结论仍完整，省下的都是重复传输的明细。
 
@@ -165,7 +167,8 @@ python scripts/try_web.py            # 启动后自动打开 http://127.0.0.1:80
 ## 已知限制
 
 - 只有只读能力，写操作需要另建工具并加人工确认。
-- 方舟账号额度用完会报 `429 usage limit`（"安全体验模式"的免费额度用尽即暂停服务），到模型开通页面调整或关闭该模式，与代码无关。
+- 方舟账号额度用完会报 `429 usage limit`（"安全体验模式"的免费额度用尽即暂停该模型），换一个已开通的 Model ID 即可继续，不必改代码。
+- 深度思考（`thinking`）是请求体里的**顶层字段**，只能通过 `extra_body` 传；写成关键字参数 `thinking=...` 会被 LangChain 塞进 `model_kwargs` 并给警告，且不生效。
 - 表结构在进程内缓存，改了表要 `/refresh` 或重启。
 - 表名大小写：Linux 上 `lower_case_table_names=0` 时大小写敏感，12 张表名已写在提示词里，跨库查别的表要先拿原始写法。
 - 生产环境务必给只读账号限定来源 IP，公网再加 `REQUIRE SSL`。
