@@ -56,6 +56,14 @@ copy .env.example .env      # 本仓库不含 .env，请按「快速开始」自
 
 > `.env` 与 `data/*.sqlite`（会话记录）已在 `.gitignore` 中，不会提交到仓库。
 
+**如果 conda 环境被重建过**（只剩 pip/setuptools、`import langchain` 报 `ModuleNotFoundError`），环境目录还在，直接重装依赖即可，不用重建环境、也不会动 `.env` 和会话库：
+
+```powershell
+& "D:\AI_Development\conda_envs\langchain1.5\python.exe" -m pip install -e ".[openai]" tiktoken
+```
+
+注意：`pip install -e .` 依赖 `pyproject.toml` 里的 `[tool.setuptools.packages.find] include = ["ettj*"]`。少了这段，setuptools 会把 `data/`、`logs/`、`notebooks/`、`ppt_preview/` 都当成顶层包并直接报 `Multiple top-level packages discovered`，装不上。
+
 ## 快速开始
 
 ```powershell

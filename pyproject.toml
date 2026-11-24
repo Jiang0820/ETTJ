@@ -30,3 +30,8 @@ addopts = "-q"
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.setuptools.packages.find]
+# 明确告诉 setuptools 只把 ettj 当代码包，
+# 否则它会把 data/、logs/、notebooks/、ppt_preview/ 也当成顶层包而拒绝构建
+include = ["ettj*"]
