@@ -112,11 +112,29 @@ python scripts/try_web.py            # 启动后自动打开 http://127.0.0.1:80
 
 ## 当前数据范围
 
-默认库是 `procurement`，业务问题只用 12 张采购询价表回答；表名、主键、表间关系、字段坑与报价口径都写在 `ettj/prompts/sql_agent.md` 里（知识小且稳定，所以放提示词，没有做向量库）。
+默认库是 `procurement`，业务问题只用 12 张采购询价表回答；表名、主键、状态字典、表间关系、字段坑与报价口径都写在 `ettj/prompts/sql_agent.md` 里（知识小且稳定，所以放提示词，没有做向量库）。
 
+业务侧的口径约束（来自公司 2026-11 回复信，已写进提示词）：
+
+| 约束 | 落地方式 |
+|---|---|
+| 只查正式租户 | 所有查询固定带 `WHERE tenant_id = 'tenant_id_000001'`，回答不提租户编号 |
+| 禁止查旧快照 | 库里有 `*_copy1` 表（同步前的备份，数据过期），提示词明令禁用 |
+| 金额口径 | 一律视为**含税价**，不再标"未知" |
+| 禁用词 | 不出现"中标""成交价"，改称"审批通过价格" |
+| 供应商展示 | 用 `jd_supplier.name`，不用 `supplier_code`；join 时必带 `tenant_id` |
+| 报价进度三分类 | 已完成 = 询价单 `status IN (2,3)`；报价中 = `status = 1`；未完成 = 询价单 `status = 1` 的单 + 需求明细 `conn_status IN (0, NULL)` 的行（两者粒度不同，须分别说清） |
+| 采购员业绩 | 按 `creat_man` 分组、`COUNT(DISTINCT order_id)`，不能按明细行 |
+| 新供应商 | 用 `jd_supplier.createtime` 判建档时间窗口（默认近 90 天） |
+
+其他口径：
+
+- **状态字典来自表字段注释，不是猜的**：`status` 1 询价中 / 2 已报价 / 3 已关闭；`close_type` 1 正常完成 / 2 超时；`conn_status` 0 或 NULL 待询价 / 1 询价中 / 2 已报价
+- `mysql_table_schema` 通过 SQLAlchemy 反射读取，**返回的字段带 `-- 注释`、末尾带表注释**，字段含义优先信注释
+- 有效报价 = `quote_price > 0`；`price` / `priceandtax` / `historyprice` / `last_price` 实际没有可用数据
+- `biz_purchase_order_checkresult` 只有十余条，成交侧样本极少
+- 数据持续写入，行数每天在变，别引用固定行数
 - 关系与实测结论见 `docs/采购12表关系.md`
-- 所有 join 都要带 `tenant_id`（库里有 2 个租户，业务编码跨租户会重复）
-- 有效报价 = `quote_price > 0`；`price` / `historyprice` / `last_price` 实际没有可用数据
 
 ## 只读怎么保证
 
